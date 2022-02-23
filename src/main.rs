@@ -1,14 +1,21 @@
-use i3_ipc::{Connect, I3};
+use i3_ipc::{
+    reply::{Node, Workspace},
+    Connect, I3Stream, I3,
+};
 use std::{io, process::Command};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "find_empty_workspace")]
 struct Opt {
-    #[structopt(short = "m", long = "move", help="Move the focused container to an empty workspace.")]
+    #[structopt(
+        short = "m",
+        long = "move",
+        help = "Move the focused container to an empty workspace."
+    )]
     move_container: bool,
 
-    #[structopt(short = "f", long = "focus", help="Focus an empty workspace.")]
+    #[structopt(short = "f", long = "focus", help = "Focus an empty workspace.")]
     focus_workspace: bool,
 
     #[structopt(name = "NAMES", required = true, min_values = 1)]
@@ -35,7 +42,9 @@ fn run() -> Result<(), &'static str> {
     let active_workspaces = i3
         .get_workspaces()
         .map_err(|_| "Unable to retrieve workspaces.")?;
-    // TODO Check whether currently focused workspace is empty.
+
+    is_action_necessary(&mut i3, &active_workspaces)?;
+
     let active_names = active_workspaces.into_iter().map(|ws| ws.name).collect();
     let free_workspace_name = find_next_free_workspace(&opt.names, &active_names)
         .ok_or("No empty workspaces available.")?;
@@ -58,11 +67,45 @@ fn run() -> Result<(), &'static str> {
     Ok(())
 }
 
-fn find_next_free_workspace(all_names: &Vec<String>, active_names: &Vec<String>) -> Option<String> {
-    if active_names.len() == 10 {
-        return None;
+fn is_action_necessary(
+    i3: &mut I3Stream,
+    active_workspaces: &Vec<Workspace>,
+) -> Result<(), &'static str> {
+    // Action is necessary iff current workspace is not empty and there is at least one inactive workspace.
+    if active_workspaces.len() == 10 {
+        return Err("No empty workspaces available.");
     }
 
+    let focused_workspace_name = Some(
+        active_workspaces
+            .iter()
+            .filter(|w| w.focused)
+            .next()
+            .expect("There is always one focused workspace")
+            .name
+            .clone(),
+    );
+
+    let i3_node_name = Some(String::from("__i3"));
+    let content_node_name = Some(String::from("content"));
+
+    let tree: Node = i3.get_tree().map_err(|_| "Unable to access tree.")?;
+    if tree
+        .nodes
+        .iter()
+        .filter(|o| !o.name.eq(&i3_node_name))
+        .flat_map(|o| &o.nodes)
+        .filter(|c| c.name.eq(&content_node_name))
+        .flat_map(|c| &c.nodes)
+        .any(|w: &Node| w.name.eq(&focused_workspace_name) && w.nodes.len() == 0)
+    {
+        Err("The current workspace is empty.")
+    } else {
+        Ok(())
+    }
+}
+
+fn find_next_free_workspace(all_names: &Vec<String>, active_names: &Vec<String>) -> Option<String> {
     all_names
         .iter()
         .find(|&name| !active_names.contains(name))
