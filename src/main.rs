@@ -3,22 +3,22 @@ use std::{io, process::Command};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "basic")]
+#[structopt(name = "find_empty_workspace")]
 struct Opt {
-    #[structopt(short = "m", long = "move")]
+    #[structopt(short = "m", long = "move", help="Move the focused container to an empty workspace.")]
     move_container: bool,
 
-    #[structopt(short = "f", long = "focus")]
+    #[structopt(short = "f", long = "focus", help="Focus an empty workspace.")]
     focus_workspace: bool,
 
-    #[structopt(name = "NAME")]
+    #[structopt(name = "NAMES", required = true, min_values = 1)]
     names: Vec<String>,
 }
 
 fn main() -> io::Result<()> {
     if let Err(error_str) = run() {
         Command::new("notify-send")
-            .arg(format!("\"{0}\"", error_str))
+            .arg(format!("{0}", error_str))
             .spawn()
             .expect("notify-send is missing");
     }
