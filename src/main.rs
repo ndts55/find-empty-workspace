@@ -48,7 +48,7 @@ fn run() -> Result<(), &'static str> {
     }
 
     if opt.focus_workspace {
-        let focus_command = format!("workspace {0}", free_workspace_name);
+        let focus_command = format!("workspace {0};", free_workspace_name);
         command.push_str(&focus_command);
     }
 
