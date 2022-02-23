@@ -1,4 +1,4 @@
-use i3_ipc::{Connect, I3Stream, I3};
+use i3_ipc::{Connect, I3};
 use std::{io, process::Command};
 use structopt::StructOpt;
 
@@ -31,7 +31,7 @@ fn run() -> Result<(), &'static str> {
         return Ok(());
     }
 
-    let mut i3: I3Stream = I3::connect().map_err(|_| "Unable to connect to i3")?;
+    let mut i3 = I3::connect().map_err(|_| "Unable to connect to i3")?;
     let active_workspaces = i3
         .get_workspaces()
         .map_err(|_| "Unable to retrieve workspaces.")?;
@@ -40,15 +40,20 @@ fn run() -> Result<(), &'static str> {
     let free_workspace_name = find_next_free_workspace(&opt.names, &active_names)
         .ok_or("No empty workspaces available.")?;
 
+    let mut command = String::new();
+
     if opt.move_container {
-        i3.run_command(format!("move workspace {0}", free_workspace_name))
-            .map_err(|_| "Error moving the container")?;
+        let move_command = format!("move container to workspace {0};", free_workspace_name);
+        command.push_str(&move_command);
     }
 
     if opt.focus_workspace {
-        i3.run_command(format!("workspace {0}", free_workspace_name))
-            .map_err(|_| "Error focusing the workspace")?;
+        let focus_command = format!("workspace {0}", free_workspace_name);
+        command.push_str(&focus_command);
     }
+
+    i3.run_command(command)
+        .map_err(|_| "Unable to execute the command")?;
 
     Ok(())
 }
