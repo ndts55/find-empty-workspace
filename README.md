@@ -1,5 +1,9 @@
 # find_empty_workspace
-Simple script to find the smallest empty i3 workspace and move a container and/or focus it.
+Finds the unused i3 workspace with the smallest number.
+Then, moves the currently focused container to it, and/or focuses the selected workspace.
+If there are no empty workspaces left a notification will be displayed.
+
+This programm relies on `notify-send` and `i3-msg`.
 
 ```
 find_empty_workspace 0.1.0
@@ -16,3 +20,12 @@ FLAGS:
 ARGS:
     <NAMES>...    
 ```
+
+To call this script you need to specify _all_ possible workspace names.
+Ideally you already put those in variables in your `i3/config`.
+Then you can call `find_empty_workspace` like:
+
+```
+~/.config/find_empty_workspace --move --focus $ws1 $ws2 ... $wsN
+```
+
