@@ -1,31 +1,41 @@
-# find_empty_workspace
+# Find Empty Workspace
 Finds the unused i3 workspace with the smallest number.
 Then, moves the currently focused container to it, and/or focuses the selected workspace.
-If there are no empty workspaces left a notification will be displayed.
+If there are no empty workspaces left, a notification will be displayed.
 
-This programm relies on `notify-send` and `i3-msg`.
+This program relies on `notify-send` and `i3-msg`.
 
 ```
-find_empty_workspace 0.1.0
+find_empty_workspace 0.2.0
 
 USAGE:
-    find_empty_workspace [FLAGS] <NAMES>...
+    find_empty_workspace [FLAGS] <Workspace Names>...
 
 FLAGS:
-    -f, --focus      Focus an empty workspace.
     -h, --help       Prints help information
     -m, --move       Move the focused container to an empty workspace.
+    -s, --stay       Stay on the current workspace.
     -V, --version    Prints version information
 
 ARGS:
-    <NAMES>...    
+    <Workspace Names>...    Names of all possible workspaces. 
 ```
 
 To call this script you need to specify _all_ possible workspace names.
 Ideally you already put those in variables in your `i3/config`.
-Then you can call `find_empty_workspace` like:
+Here, I'll assume workspaces `$ws1`, ..., `$wsN`.
 
+To switch to an empty workspace.
 ```
-~/.config/find_empty_workspace --move --focus $ws1 $ws2 ... $wsN
+find_empty_workspace $ws1 ... $wsN
 ```
 
+To move the focused container to an empty workspace but stay on the current workspace.
+```
+find_empty_workspace -m -s <$ws1 ... $wsN>
+```
+
+To move the focused container to an empty workspace and switch to that same workspace.
+```
+find_empty_workspace -m <$ws1 ... $wsN>
+```
