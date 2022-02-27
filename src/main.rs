@@ -77,7 +77,7 @@ fn is_action_necessary(
     let i3_node_name = Some(String::from("__i3"));
     let content_node_name = Some(String::from("content"));
 
-    let tree: Node = i3.get_tree().expect("Unable to access tree.");
+    let tree: Node = i3.get_tree().map_err(|_| "Unable to access tree.")?;
     // Retrieve nodes for workspaces from tree and check if the current workspace is empty, i.e., has no nodes.
     if tree
         .nodes
