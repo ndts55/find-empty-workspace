@@ -6,10 +6,10 @@ If there are no empty workspaces left, a notification will be displayed.
 This program relies on `notify-send` and `i3-msg`.
 
 ```
-find_empty_workspace 0.2.0
+find-empty-workspace 0.3.0
 
 USAGE:
-    find_empty_workspace [FLAGS] <Workspace Names>...
+    find-empty-workspace [FLAGS] <Workspace Names>...
 
 FLAGS:
     -h, --help       Prints help information
@@ -27,15 +27,15 @@ Here, I'll assume workspaces `$ws1`, ..., `$wsN`.
 
 To switch to an empty workspace.
 ```
-find_empty_workspace $ws1 ... $wsN
+find-empty-workspace $ws1 ... $wsN
 ```
 
 To move the focused container to an empty workspace but stay on the current workspace.
 ```
-find_empty_workspace -m -s <$ws1 ... $wsN>
+find-empty-workspace -m -s <$ws1 ... $wsN>
 ```
 
 To move the focused container to an empty workspace and switch to that same workspace.
 ```
-find_empty_workspace -m <$ws1 ... $wsN>
+find-empty-workspace -m <$ws1 ... $wsN>
 ```

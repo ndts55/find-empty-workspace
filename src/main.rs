@@ -6,7 +6,7 @@ use std::{io, process::Command};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "find_empty_workspace")]
+#[structopt(name = "find-empty-workspace")]
 struct Opt {
     #[structopt(
         short = "m",

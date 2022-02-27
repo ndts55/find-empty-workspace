@@ -44,8 +44,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "find_empty_workspace"
-version = "0.2.0"
+name = "find-empty-workspace"
+version = "0.3.0"
 dependencies = [
  "i3_ipc",
  "structopt",
