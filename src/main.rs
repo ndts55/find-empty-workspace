@@ -1,8 +1,9 @@
+use eyre::eyre;
 use i3_ipc::{
     reply::{Node, Workspace},
     Connect, I3Stream, I3,
 };
-use std::{io, process::Command};
+use std::process::Command;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -27,7 +28,7 @@ struct Opt {
     names: Vec<String>,
 }
 
-fn main() -> io::Result<()> {
+fn main() {
     // Run the actual logic and notify the user about any errors.
     if let Err(error_str) = run() {
         Command::new("notify-send")
@@ -35,33 +36,29 @@ fn main() -> io::Result<()> {
             .spawn()
             .expect("notify-send is missing");
     }
-    Ok(())
 }
 
-fn run() -> Result<(), &'static str> {
+fn run() -> eyre::Result<()> {
     let opt = Opt::from_args();
 
-    let mut i3 = I3::connect().map_err(|_| "Unable to connect to i3")?;
+    let mut i3 = I3::connect().map_err(|e| eyre!("Unable to connect to i3\n{}", e.to_string()))?;
     let active_workspaces = i3
         .get_workspaces()
-        .map_err(|_| "Unable to retrieve workspaces.")?;
+        .map_err(|e| eyre!("Unable to retrieve workspaces.\n{}", e.to_string()))?;
 
     is_action_necessary(&mut i3, &active_workspaces)?;
 
     let free_workspace_name = find_next_free_workspace(&opt.names, &active_workspaces)?;
     i3.run_command(build_command(&opt, &free_workspace_name))
-        .map_err(|_| "Unable to execute the command.")?;
+        .map_err(|e| eyre!("Unable to execute the command.\n{}", e.to_string()))?;
 
     Ok(())
 }
 
-fn is_action_necessary(
-    i3: &mut I3Stream,
-    active_workspaces: &Vec<Workspace>,
-) -> Result<(), &'static str> {
+fn is_action_necessary(i3: &mut I3Stream, active_workspaces: &Vec<Workspace>) -> eyre::Result<()> {
     // Action is necessary iff current workspace is not empty and there is at least one inactive workspace.
     if active_workspaces.len() == 10 {
-        return Err("No empty workspaces available.");
+        return Err(eyre!("No empty workspaces available."));
     }
 
     let focused_workspace_name = active_workspaces
@@ -77,7 +74,9 @@ fn is_action_necessary(
     let i3_node_name = Some(String::from("__i3"));
     let content_node_name = Some(String::from("content"));
 
-    let tree: Node = i3.get_tree().map_err(|_| "Unable to access tree.")?;
+    let tree: Node = i3
+        .get_tree()
+        .map_err(|e| eyre!("Unable to access tree.\n{}", e.to_string()))?;
     // Retrieve nodes for workspaces from tree and check if the current workspace is empty, i.e., has no nodes.
     if tree
         .nodes
@@ -88,7 +87,7 @@ fn is_action_necessary(
         .flat_map(|c| &c.nodes) // Content node children are workspaces.
         .any(|w: &Node| w.name.eq(&focused_workspace_name) && w.nodes.len() == 0)
     {
-        Err("The current workspace is empty.")
+        Err(eyre!("The current workspace is empty."))
     } else {
         // Action is necessary. Return Ok.
         Ok(())
@@ -98,13 +97,13 @@ fn is_action_necessary(
 fn find_next_free_workspace(
     all_names: &Vec<String>,
     active_workspaces: &Vec<Workspace>,
-) -> Result<String, &'static str> {
+) -> eyre::Result<String> {
     let active_names: Vec<&String> = active_workspaces.iter().map(|ws| &ws.name).collect();
     all_names
         .iter()
         .find(|name| !active_names.contains(name))
         .cloned()
-        .ok_or("No empty workspaces available.")
+        .ok_or(eyre!("No empty workspaces available."))
 }
 
 fn build_command(opt: &Opt, workspace_name: &String) -> String {
