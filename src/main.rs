@@ -123,7 +123,6 @@ fn is_workspace_empty(tree: &Node, workspace: &Workspace) -> eyre::Result<bool> 
     let content_node_name = Some(String::from("content"));
     let workspace_name_opt = Some(workspace.name.clone());
     // Retrieve nodes for workspaces from tree and check whether the given workspace is empty, i.e., has no nodes.
-    // TODO Check floating nodes as well.
     Ok(tree
         .nodes
         .iter()
@@ -131,7 +130,9 @@ fn is_workspace_empty(tree: &Node, workspace: &Workspace) -> eyre::Result<bool> 
         .flat_map(|o| &o.nodes) // Output node children.
         .filter(|c| c.name.eq(&content_node_name)) // Each output node has a content node.
         .flat_map(|c| &c.nodes) // Content node children are workspaces.
-        .any(|w: &Node| w.name.eq(&workspace_name_opt) && w.nodes.len() == 0))
+        .any(|w: &Node| {
+            w.name.eq(&workspace_name_opt) && w.nodes.len() == 0 && w.floating_nodes.len() == 0
+        }))
 }
 
 fn find_smallest_inactive_workspace_name<'a, 'b>(

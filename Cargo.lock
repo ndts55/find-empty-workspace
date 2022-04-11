@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "find-empty-workspace"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "eyre",
  "i3_ipc",
