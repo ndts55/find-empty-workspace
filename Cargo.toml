@@ -1,9 +1,9 @@
 [package]
 name = "find-empty-workspace"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 [dependencies]
 i3_ipc = "0.14.0"
 structopt = "0.3.26"
-eyre = "0.6.7"
+eyre = "0.6.8"
